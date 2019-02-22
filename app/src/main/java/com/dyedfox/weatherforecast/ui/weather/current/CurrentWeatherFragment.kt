@@ -17,11 +17,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class CurrentWeatherFragment : Fragment() {
+import org.kodein.di.KodeinAware
+import org.kodein.di.android.x.closestKodein
+import org.kodein.di.generic.instance
 
-    companion object {
-        fun newInstance() = CurrentWeatherFragment()
-    }
+class CurrentWeatherFragment : Fragment(), KodeinAware  {
+
+    override val kodein by closestKodein()
+
+    private val viewModelFactory: CurrentWeatherViewModelFactory by instance()
+
+
 
     private lateinit var viewModel: CurrentWeatherViewModel
 
@@ -34,10 +40,11 @@ class CurrentWeatherFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(CurrentWeatherViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, viewModelFactory)
+            .get(CurrentWeatherViewModel::class.java)
         // TODO: Use the ViewModel
-
-        val apiService = ApixuWeatherApiService(ConnectivityInterceptorImpl(this.context!!))
+        bindUI()
+/*        val apiService = ApixuWeatherApiService(ConnectivityInterceptorImpl(this.context!!))
 
         val weatherNetworkDataSource = WeatherNetworkDataSourceImpl(apiService)
 
@@ -48,9 +55,12 @@ class CurrentWeatherFragment : Fragment() {
         GlobalScope.launch(Dispatchers.Main) {
             weatherNetworkDataSource.fetchCurrentWeather("London","en")
 
-        }
+        }*/
 
 
+    }
+    private fun bindUI() = GlobalScope.launch {
+        val currentWeather = viewModel.weather.await()
     }
 
 }
