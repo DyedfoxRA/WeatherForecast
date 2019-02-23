@@ -1,8 +1,11 @@
 package com.dyedfox.weatherforecast
 
 import android.app.Application
+import android.preference.PreferenceManager
 import com.dyedfox.weatherforecast.data.db.ForecastDatabase
 import com.dyedfox.weatherforecast.data.network.*
+import com.dyedfox.weatherforecast.data.provider.UnitProvider
+import com.dyedfox.weatherforecast.data.provider.UnitProviderImpl
 import com.dyedfox.weatherforecast.data.repository.ForecastRepository
 import com.dyedfox.weatherforecast.data.repository.ForecastRepositoryImpl
 import com.dyedfox.weatherforecast.ui.weather.current.CurrentWeatherViewModelFactory
@@ -25,12 +28,14 @@ class ForecastApplication: Application(), KodeinAware {
         bind() from singleton { ApixuWeatherApiService(instance()) }
         bind<WeatherNetworkDataSource>() with singleton { WeatherNetworkDataSourceImpl(instance()) }
         bind<ForecastRepository>() with singleton { ForecastRepositoryImpl(instance(), instance()) }
-        bind() from provider { CurrentWeatherViewModelFactory(instance()) }
+        bind<UnitProvider>() with singleton { UnitProviderImpl(instance()) }
+        bind() from provider { CurrentWeatherViewModelFactory(instance(), instance()) }
 
         }
 
     override fun onCreate() {
         super.onCreate()
         AndroidThreeTen.init(this)
+        PreferenceManager.setDefaultValues(this,R.xml.preferences, false)
     }
 }
